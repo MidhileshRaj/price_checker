@@ -29,7 +29,7 @@ class MainController extends GetxController {
   static MySQLConnection? _connection;
 
   // Scan Barcode Method
-  Future<void> scanBarCode() async {
+  Future scanBarCode() async {
     try {
       final result = await FlutterBarcodeScanner.scanBarcode(
         '#ff6666',
@@ -70,9 +70,9 @@ class MainController extends GetxController {
   }
 
   // Fetch Product Details
-  Future<void> fetchProductDetails(String productId) async {
+  Future<void> fetchProductDetails() async {
     try {
-      var product = await MySQLHelper.getProductById(productId, table.value);
+      var product = await MySQLHelper.getProductById(barcode.toString(), table.value);
       if (product != null) {
         productDetails.value =
         'Id: ${product['id']}, Name: ${product['name']}, Price: ${product['price']}';

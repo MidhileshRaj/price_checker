@@ -60,7 +60,8 @@ class GetItemDetails extends StatelessWidget {
                   size: 45,
                 ),
                 onClicked: () async {
-                  // var id = await controller.scanBarCode();
+                   await controller.scanBarCode();
+                   await controller.fetchProductDetails();
 
                 },
               ),
