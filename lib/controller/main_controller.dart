@@ -65,21 +65,35 @@ class MainController extends GetxController {
       );
       await _connection!.connect();
     } catch (e) {
-      stdout.write("Error initializing database: $e");
+      print("Error initializing database: $e");
     }
   }
 
   // Fetch Product Details
-  Future<void> fetchProductDetails() async {
+  Future fetchProductDetails() async {
     try {
-      var product = await MySQLHelper.getProductById(barcode.toString(), table.value);
-      if (product != null) {
-        productDetails.value =
-        'Id: ${product['id']}, Name: ${product['name']}, Price: ${product['price']}';
-        stdout.write("${productDetails.value} ====== Fetched Successfully");
-      } else {
+      print(barcode.toString()+"=================-===============--========");
+      if (_connection == null) {
+        print("Connection Error>>>-------$_connection");
+        throw Exception("Database connection is not initialized.");
+      }
+
+      var query = 'SELECT * FROM $table WHERE id = :id';
+
+      var result = await _connection!.execute(
+        query,
+        {'id': barcode.toString()},
+      );
+
+      if (result.rows.isNotEmpty) {
+
+         print(result.rows.toString()+'---------------- Output');
+          stdout.write("${productDetails.value} ====== Fetched Successfully");
+         return result.rows.first.assoc();
+      }else {
         productDetails.value = "Product not found.";
       }
+
     } catch (e) {
       stdout.write("Error fetching product: $e");
     }
