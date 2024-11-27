@@ -15,6 +15,7 @@ class MainController extends GetxController {
   // Text Editing Controller
   final TextEditingController getItemController = TextEditingController();
 
+  static const platform = MethodChannel('scanner_channel');
   // Reactive Variables
   var getItemID = "".obs;
   var barcode = "".obs;
@@ -27,6 +28,25 @@ class MainController extends GetxController {
 
   // MySQL connection
   static MySQLConnection? _connection;
+
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Set up method channel to listen for barcode results.
+    platform.setMethodCallHandler((call) async {
+      if (call.method == 'onBarcodeScanned') {
+        barcode.value = call.arguments; // Update the barcode value.
+      }
+    });
+
+  }
+
+  void startScan() {
+    const scanIntent = 'nlscan.action.SCANNER_TRIG';
+    platform.invokeMethod('startScanner', {'intent': scanIntent});
+  }
+
 
   // Scan Barcode Method
   Future scanBarCode() async {

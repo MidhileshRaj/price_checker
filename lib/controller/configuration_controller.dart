@@ -41,7 +41,7 @@ class ConfigurationController extends GetxController {
     } else {
       enableTextField.value = true;
 
-      serverNameController.value.text = "http://192.168.20.2:4000";
+      serverNameController.value.text = "192.168.20.2:4000";
       dataBaseNameController.value.text = "techsysdb";
       tableNameController.value.text = "products";
 
