@@ -60,7 +60,9 @@ class GetItemDetails extends StatelessWidget {
                   size: 45,
                 ),
                 onClicked: () async {
-                    controller.startScan();
+                    // controller.startScan();
+                   await controller.scanBarCode();
+                   // await controller.fetchProductDetails();
                    // await controller.fetchProductDetails();
 
                 },
@@ -74,33 +76,44 @@ class GetItemDetails extends StatelessWidget {
                     style: TextStyle(color: Colors.white),
                   );
                 } else {
-                  return Card(
+                  return
+                    // Text(controller.productDetails.value.toString(),style: TextStyle(color: Colors.white),);
+                    Card(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Column(
+                      child:  Container(
+                        alignment: Alignment.center,
+                        height: MediaQuery.sizeOf(context).height * .1,
+                        width: MediaQuery.sizeOf(context).width * .70,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          // image: const DecorationImage(
+                          //   image: AssetImage(
+                          //       "assets/images/yellow_background.jpg"),
+                          //   fit: BoxFit.fill,
+                          //   opacity: .7,
+                          // ),
+                        ),
+                        child:Column(
                         children: [
-                          Container(
-                            alignment: Alignment.center,
-                            height: MediaQuery.sizeOf(context).height * .1,
-                            width: MediaQuery.sizeOf(context).width * .75,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              image: const DecorationImage(
-                                image: AssetImage(
-                                    "assets/images/yellow_background.jpg"),
-                                fit: BoxFit.fill,
-                                opacity: .7,
+                          ListTile(
+                            leading: Text(
+                                controller.productID.value,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,fontSize: 20
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              controller.productDetails.value,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            title: Text(controller.productName.value, style: const TextStyle(
+                                fontWeight: FontWeight.bold,fontSize: 25
+                            ),),
+                            subtitle: Text(controller.productPrice.value.toString(), style: const TextStyle(
+                                fontWeight: FontWeight.bold,fontSize: 20
+                            ),),
                           ),
+
                         ],
                       ),
+                      )
                     ),
                   );
                 }
