@@ -17,7 +17,7 @@ class GetItemDetails extends StatelessWidget {
     /// Ensure the database is initialized when the widget builds
     /// Initialize the controller using Get.find() for dependency injection
     final controller = Get.find<MainController>();
-    controller.initializeDatabase();
+    // controller.initializeDatabase();
 
     return Container(
       decoration: const BoxDecoration(
@@ -95,21 +95,22 @@ class GetItemDetails extends StatelessWidget {
                           // ),
                         ),
                         child:Column(
-                        children: [
+                        children: [controller.productID.value.isEmpty?
+                            Text("Item Not Found"):
                           ListTile(
-                            leading: Text(
-                                controller.productID.value,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,fontSize: 20
-                                ),
-                              ),
-                            title: Text(controller.productName.value, style: const TextStyle(
-                                fontWeight: FontWeight.bold,fontSize: 25
-                            ),),
-                            subtitle: Text(controller.productPrice.value.toString(), style: const TextStyle(
-                                fontWeight: FontWeight.bold,fontSize: 20
-                            ),),
-                          ),
+                          // leading: Text(
+                          //     controller.productID.value,
+                          //     style: const TextStyle(
+                          //       fontWeight: FontWeight.bold,fontSize: 20
+                          //     ),
+                          //   ),
+                          title: Text(controller.productDetails.value, style: const TextStyle(
+                              fontWeight: FontWeight.bold,fontSize: 25
+                          ),),
+                          // subtitle: Text(controller.productPrice.value.toString(), style: const TextStyle(
+                          //     fontWeight: FontWeight.bold,fontSize: 20
+                          // ),),
+                        ),
 
                         ],
                       ),

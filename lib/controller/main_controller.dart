@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:mssql_connection/mssql_connection.dart';
 import 'package:mysql_client/mysql_client.dart';
+import 'package:price_checker/utils/constants/api_constans.dart';
 
 import '../utils/helpers/database_connector.dart';
 import '../utils/helpers/persistance_helper.dart';
@@ -16,9 +19,13 @@ class MainController extends GetxController {
   final TextEditingController getItemController = TextEditingController();
 
   static const platform = MethodChannel('scanner_channel');
+  final _sqlConnection = MssqlConnection.getInstance();
+
+
 
   // Reactive Variables
   var getItemID = "".obs;
+  var isConnected = false.obs;
   var barcode = "".obs;
   var server = "".obs;
   var table = "".obs;
@@ -69,19 +76,20 @@ class MainController extends GetxController {
         ScanMode.DEFAULT,
       );
 
+      print('$result ----------------------- Barcode value ------');
+
       if (result != '-1') {
         barcode.value = result;
-        print('$result ----------------------- Barcode value ------');
-        productID.value = result;
+        productDetails.value =result.toString();
 
-        print('Attempting to fetch product details...');
-         await fetchProductDetails();
+        print('Attempting to fetch product details...${barcode.value}');
+         await fetchProductMSSql(productCode: barcode.value, tableName: table.value,);
 
-        if (productDetailsMap.value.isNotEmpty) {
-          print('Product details fetched successfully: $productDetails');
-        } else {
-          print('Product details not found.');
-        }
+        // if (productDetailsMap.value.isNotEmpty) {
+        //   print('Product details fetched successfully: $productDetails');
+        // } else {
+        //   print('Product details not found.');
+        // }
       } else {
         print('Scan canceled by the user.');
       }
@@ -115,6 +123,59 @@ class MainController extends GetxController {
       await _connection!.connect();
     } catch (e) {
       print("Error initializing database: $e");
+    }
+  }
+
+  Future<Map<String, dynamic>?> fetchProductMSSql({required String productCode,required String tableName}) async {
+    try {
+      server.value = await HelperServices.getServerData(StringConstants.server);
+      database.value =
+      await HelperServices.getServerData(StringConstants.dataBase);
+      userName.value =
+      await HelperServices.getServerData(StringConstants.userName);
+      password.value =
+      await HelperServices.getServerData(StringConstants.password);
+      table.value = await HelperServices.getServerData(StringConstants.table);
+
+      // Connect to the database
+      bool isConnected = await _sqlConnection.connect(
+        ip: server.value,
+        port: '1433',
+        databaseName: database.value,
+        username: userName.value,
+        password: password.value,
+      );
+
+      if (!isConnected) {
+        print('Failed to connect to SQL Server');
+        return null;
+      }
+
+      // Construct the SQL query with dynamic table name
+      String query = '''
+        SELECT *
+        FROM [$tableName]
+        WHERE product_code = '$productCode'
+      ''';
+
+      // Prepare the parameters
+
+      // Execute the query
+      String result = await _sqlConnection.getData(query);
+
+      // Close the connection
+      bool isDisconnected = await _sqlConnection.disconnect();
+
+      if (isDisconnected) {
+        print('Successfully disconnected from SQL Server');
+      } else {
+        print('Failed to disconnect from SQL Server');
+      }
+
+      return json.decode(result);
+    } catch (e) {
+      print('Error fetching product data: $e');
+      return null;
     }
   }
 
@@ -154,4 +215,52 @@ class MainController extends GetxController {
       stdout.write("Error fetching product: $e");
     }
   }
+
+
+Future<dynamic> getProductDetails(productCode)async{
+    try {
+      server.value = await HelperServices.getServerData(StringConstants.server);
+      database.value =
+      await HelperServices.getServerData(StringConstants.dataBase);
+      userName.value =
+      await HelperServices.getServerData(StringConstants.userName);
+      password.value =
+      await HelperServices.getServerData(StringConstants.password);
+      table.value = await HelperServices.getServerData(StringConstants.table);
+      print("APi integration with server${server.value} === ${userName
+          .value} === $table");
+      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/get_data'));
+      request.fields.addAll({
+        'userName': userName.value,
+        'dataBase': database.value,
+        'host': server.value,
+        'password': password.value,
+        'productCode': productCode
+      });
+
+
+      http.StreamedResponse response = await request.send();
+
+      if (response.statusCode == 200) {
+        print("Response==========");
+       var result =await response.stream.bytesToString();
+
+       productDetailsMap.value =  jsonDecode(result);
+       print(productDetailsMap.values);
+       productName.value = productDetailsMap["product"]["name"].toString();
+       productID.value = productDetailsMap["product"]["id"].toString();
+       productPrice.value = productDetailsMap["product"]["price"].toString();
+       return productDetailsMap.values;
+      }
+      else {
+        print(response.reasonPhrase);
+        throw Exception("Api request error ${response.statusCode}");
+      }
+
+    }catch(e){
+      print("Exception ---------> $e");
+
+    }
+
+}
 }
